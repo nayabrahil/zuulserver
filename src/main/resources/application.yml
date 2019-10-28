@@ -1,0 +1,38 @@
+server:
+  port: 8090
+
+spring:
+  cloud:
+    config:
+      uri: http://localhost:8888
+      enabled: true
+  application:
+    name: zuulserver
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+#zuul:
+#  routes:
+#    licensestatic:
+#      path: /licensestatic/**
+#      serviceId: licensestatic
+#  prefix: /api/
+#ribbon:
+#  eureka:
+#    enabled: false
+#licensestatic:
+#  ribbon:
+#    listOfServers: http://localhost:8081
