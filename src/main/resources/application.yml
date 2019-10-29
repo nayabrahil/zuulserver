@@ -1,6 +1,7 @@
 server:
   port: 8090
 
+
 spring:
   cloud:
     config:
@@ -8,6 +9,8 @@ spring:
       enabled: true
   application:
     name: zuulserver
+  profiles:
+    active: dev
 
 eureka:
   instance:
