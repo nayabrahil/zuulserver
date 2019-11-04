@@ -18,6 +18,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.netflix.zuul.filters.ProxyRequestHelper;
 import org.springframework.http.HttpMethod;
@@ -40,6 +42,8 @@ import java.util.Random;
 
 @Component
 public class SpecialRouteFilter extends ZuulFilter {
+
+    public static final Logger logger = LoggerFactory.getLogger(SpecialRouteFilter.class);
 
     private FilterUtils filterUtils;
     private RestTemplate restTemplate;
@@ -213,6 +217,8 @@ public class SpecialRouteFilter extends ZuulFilter {
                             ctx.getRequest().getRequestURI(),
                             abTestRoute.getEndpoint(),
                             ctx.get("serviceId").toString());
+
+            logger.info("Route routed to : {}", route);
             forwardToSpecialRoute(route);
         }
         return null;
@@ -257,13 +263,13 @@ public class SpecialRouteFilter extends ZuulFilter {
 
         String strippedRoute = oldEndpoint.substring(index + serviceName.length());
         System.out.println("Target route: " + String.format("%s/%s", newEndpoint, strippedRoute));
-        return String.format("%s/%s", newEndpoint, strippedRoute);
+        return String.format("http://%s%s", newEndpoint, strippedRoute);
     }
 
     private AbTestingRoute getAbRoutingInfo(String serviceName) {
         ResponseEntity<AbTestingRoute> restExchange = null;
         try {
-            restExchange = restTemplate.exchange("http://specialroutesservice/v1route/abtesting/{serviceName}",
+            restExchange = restTemplate.exchange("http://specialrouteservice/v1/route/abtesting/{serviceName}",
                     HttpMethod.GET, null, AbTestingRoute.class, serviceName);
         } catch(HttpClientErrorException ex){
             if (ex.getStatusCode()== HttpStatus.NOT_FOUND) return null;
@@ -277,7 +283,8 @@ public class SpecialRouteFilter extends ZuulFilter {
         if (testRoute.getActive().equals("N"))
             return false;
         int value =
-                random.nextInt((10 - 1) + 1) + 1;
+                random.nextInt((100 - 1) + 1) + 1;
+        logger.info("Database Value : {}, Random Value : {}", testRoute.getWeight(), value);
         if (testRoute.getWeight() < value)
             return true;
         return false;
